@@ -8,6 +8,8 @@ function App() {
   const [ballance, setBallance] = useState(0)
   const [connected, setConnected] = useState(false)
   const transferUang = useRef()
+  const noVirtual = useRef()
+  const contract = Bankcontract()
 
   const connectWallet = async () => {
     if (window.ethereum) {
@@ -15,7 +17,6 @@ function App() {
         const web3 = new Web3(window.ethereum);
         const accounts = await web3.eth.requestAccounts();
         const balances = await web3.eth.getBalance(accounts[0]);
-        console.log(accounts);
         setAccount(accounts[0])
         setBallance(balances)
         setConnected(true)
@@ -27,6 +28,33 @@ function App() {
     }
   }
 
+
+  const handleTransfer = async (e) => {
+    e.preventDefault()
+
+    try {
+      const gas = await contract.methods.transfer(account, transferUang.current.value).estimateGas();
+      await contract.methods.transfer(account, transferUang.current.value).send({from : account, gas : gas})
+
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const handleVAAccount = async (e) => {
+    e.preventDefault()
+
+    try {
+      const gas = await contract.methods.createVirtualAccount().estimateGas()
+      const res = await contract.methods.createVirtualAccount().call()
+
+      console.log(res);
+
+    } catch (e) {
+      console.log(e);
+    }
+  }
   return (
     <div className="App">
       <h1>Bank Berbasis Blockchain</h1>
@@ -45,7 +73,7 @@ function App() {
         <h3>Transfer Uang</h3>
         <form>
           <input type="number" name="nominalTransfer" id="nominalTransfer" ref={transferUang} placeholder='masukan nominal' /><br /><br />
-          <button>
+          <button onClick={handleTransfer}>
             Tranfer
           </button>
         </form>
@@ -53,10 +81,8 @@ function App() {
       <section><br /><br />
         <h3>Transfer Virtual Account</h3>
         <form>
-          <label htmlFor="noVirtual">No Virtual Account</label><br />
-          <input type="number" name="noVirtual" id="noVirtual" placeholder='masukan nomor VA' /><br /><br />
-          <button>
-            Transfer
+          <button onClick={handleVAAccount}>
+            Create Virtual Acount
           </button>
         </form>
       </section>
