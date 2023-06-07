@@ -7,8 +7,8 @@ function App() {
   const [account, setAccount] = useState("")
   const [ballance, setBallance] = useState(0)
   const [connected, setConnected] = useState(false)
+  const [isVirtualAccount, setIsVirtualAccount] = useState(false)
   const transferUang = useRef()
-  const noVirtual = useRef()
   const contract = Bankcontract()
 
   const connectWallet = async () => {
@@ -35,7 +35,12 @@ function App() {
     try {
       const gas = await contract.methods.transfer(account, transferUang.current.value).estimateGas();
       await contract.methods.transfer(account, transferUang.current.value).send({from : account, gas : gas})
-
+      
+      if (isVirtualAccount) {
+        alert("Transfer Using Virtual Account")
+      }else{
+        alert("Transfer Not Using Virtual Account")
+      }
 
     } catch (error) {
       console.log(error);
@@ -47,7 +52,10 @@ function App() {
 
     try {
       const gas = await contract.methods.createVirtualAccount().estimateGas()
-      const res = await contract.methods.createVirtualAccount().call()
+      const res = await contract.methods.createVirtualAccount().send({from : account, gas : gas})
+
+      alert("Virtual Account Created")
+      setIsVirtualAccount(true)
 
       console.log(res);
 
